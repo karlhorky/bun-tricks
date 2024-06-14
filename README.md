@@ -19,20 +19,9 @@ npm remove @types/bun
 npm add --save-dev bun-types
 ```
 
-And add an import of `bun-types` at the top of each file which should use the Bun environment:
+And add a triple-slash directive referencing `bun-types` at the top of each file which should use the Bun environment:
 
 `index.test.ts`
-
-```ts
-import 'bun-types';
-import { expect, test } from 'bun:test';
-
-test('2 + 2', () => {
-  expect(2 + 2).toBe(4);
-});
-```
-
-Alternative to the `import`, using a triple-slash directive:
 
 ```ts
 /// <reference types="bun-types" />
