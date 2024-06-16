@@ -12,7 +12,7 @@ However, some projects may include files with multiple runtime environments - fo
 error TS2739: Type 'Timer' is missing the following properties from type 'Timeout': refresh, [Symbol.dispose]
 ```
 
-To avoid these type incompatibilities, uninstall `@types/bun` and install `bun-types`:
+To avoid these type incompatibilities, uninstall [`@types/bun`](https://www.npmjs.com/package/@types/bun) and install [`bun-types`](https://www.npmjs.com/package/bun-types):
 
 ```bash
 npm remove @types/bun
