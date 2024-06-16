@@ -35,7 +35,7 @@ test('2 + 2', () => {
 
 ## `bun test`: Smoke test for server start
 
-Bun's [built-in test runner](https://bun.sh/docs/cli/test) can be used to create zero-dependency tests - not only unit tests, but also integration / end to end tests for command line interface programs. This is useful for creating smoke tests for programs such as dev servers, testing that the stdout and stderr matches a snapshot:
+Bun's [built-in test runner](https://bun.sh/docs/cli/test) can be used to create zero-dependency tests written in TypeScript - not only unit tests, but also integration / end to end tests for command line interface programs. This is useful for creating smoke tests for programs such as dev servers, testing that the stdout and stderr match a snapshot:
 
 `__tests__/smokeTestDevServer.test.ts`
 
