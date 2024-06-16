@@ -32,3 +32,87 @@ test('2 + 2', () => {
   expect(2 + 2).toBe(4);
 });
 ```
+
+## `bun test`: Smoke test for server start
+
+Bun's [built-in test runner](https://bun.sh/docs/cli/test) can be used to create zero-dependency tests - not only unit tests, but also integration / end to end tests for command line interface programs. This is useful for creating smoke tests for programs such as dev servers, testing that the stdout and stderr matches a snapshot:
+
+`__tests__/smokeTestDevServer.test.ts`
+
+```ts
+/// <reference types="bun-types" />
+
+import { setTimeout } from 'node:timers/promises';
+import { $, spawn } from 'bun';
+import { expect, test } from 'bun:test';
+
+test(
+  'Dev server smoke test',
+  async () => {
+    console.log('Starting dev server...');
+    const devServer = spawn('pnpm dev'.split(' '), {
+      env: {
+        ...process.env,
+        // TODO: Add any environment variables you need
+      },
+      stdout: 'pipe',
+      stderr: 'pipe',
+    });
+
+    console.log('Starting read of stdout and stderr...');
+    const stdoutPromise = new Response(devServer.stdout).text();
+    const stderrPromise = new Response(devServer.stderr).text();
+
+    console.log('Waiting for 8 seconds for server to finish booting...');
+    await setTimeout(8000);
+
+    console.log('Killing child process...');
+    devServer.kill();
+
+    // Kill all other Node.js processes started by spawning `pnpm dev`,
+    // needed only for GitHub Actions workflows test runs
+    // https://github.com/oven-sh/bun/issues/11892#issuecomment-2170104825
+    if (process.env.GITHUB_ACTIONS) {
+      try {
+        await $`killall node`;
+      } catch {
+        // Swallow error
+      }
+    }
+
+    console.log('Waiting for process to exit...');
+    await devServer.exited;
+
+    console.log('Waiting for read of stdout and stderr to complete...');
+    const [stdout, stderr] = await Promise.all([stdoutPromise, stderrPromise]);
+
+    console.log('Expecting stdout and stderr to match snapshots...');
+    expect({ stdout, stderr }).toMatchSnapshot();
+  },
+  { timeout: 9000 },
+);
+```
+
+This can also be run automatically on every push using GitHub Actions:
+
+`.github/workflows/ci.yml`
+
+```yml
+name: CI
+on: [push]
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+      - name: Checkout
+        uses: actions/checkout@v4
+      - run: bun install
+      - name: Smoke test for dev server
+        run: bun test __tests__/smokeTestDevServer.test.ts
+        timeout-minutes: 1
+```
